@@ -12,4 +12,4 @@ app.config['JWT_COOKIE_CSRF_PROTECT'] = False
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=20)
 jwt = JWTManager(app)
 
-from app.controllers import user,pokemon
+from app.controllers import user,pokemon,random

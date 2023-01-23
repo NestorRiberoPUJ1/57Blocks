@@ -8,13 +8,25 @@ from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt(app)
 
 
+"""
+name: manage_session
+route: /api/session
+paramams: None
+methods:
+    POST:
+        200: Correct Email and password
+        404: Correct Email , password do not match
+        400: Incorrect email and/or password
+    DELETE:
+        200: Logout Correct
+"""
 @app.route("/api/session", methods=["POST", "DELETE"])
 def manage_session():
     if request.method == "POST":
         data = request.get_json()
         users, msg = user.validar_login(data)
         if not users:
-            return (jsonify(msg)), 404
+            return (jsonify(msg)), 400
         elif not bcrypt.check_password_hash(users.password, data["password"]):
             return (jsonify({"password":"Incorrect Password"})), 404
         access_token = create_access_token(identity=users.id)
@@ -29,7 +41,16 @@ def manage_session():
         unset_jwt_cookies(ans)
         return (ans), 200
 
-
+"""
+name: register
+route: /api/register
+paramams: None
+methods:
+    POST:
+        201: User created
+        400: Incorrect email and/or password
+        500: Internal server error
+"""
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -43,9 +64,3 @@ def register():
     if ans is False:
         return (Response(status=500))
     return (Response(status=201))
-
-
-@app.route("/api/session", methods=["GET"])
-@jwt_required()
-def checkToken():
-    return (jsonify({"token": "ok"})), 200

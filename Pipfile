@@ -15,6 +15,7 @@ grpcio = "==1.35.0"
 grpcio-tools = "==1.35.0"
 flask-mqtt = "*"
 pytest = "*"
+requests = "*"
 
 [dev-packages]
 autopep8 = "*"
