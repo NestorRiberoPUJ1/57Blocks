@@ -63,4 +63,4 @@ def register():
     ans = user.save(data)
     if ans is False:
         return (Response(status=500))
-    return (Response(status=201))
+    return (jsonify({"id": ans})),201

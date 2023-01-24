@@ -3,6 +3,11 @@ import os
 from flask.testing import FlaskClient
 from app import app
 from datetime import timedelta
+from app.models.user import user
+from app.models.pokemon import pokemon
+
+user_id = None
+pokemon_id = None
 
 
 @pytest.fixture
@@ -20,6 +25,7 @@ def client():
 
 
 def test_register(client: FlaskClient):
+    global user_id
     wrongEmail = "Provide a valid Email"
     takenEmail = "Email already taken"
     missingField = "Missing Field"
@@ -72,6 +78,8 @@ def test_register(client: FlaskClient):
             assert resp.json.get("email") == case[1]["response"]["email"]
         if ("password" in case[1]["response"]):
             assert resp.json.get("password") == case[1]["response"]["password"]
+        if resp.status_code == 200:
+            user_id = resp.json.get("id")
 
 
 def test_login(client: FlaskClient):
@@ -136,6 +144,7 @@ def test_login(client: FlaskClient):
 
 
 def test_pokemon(client: FlaskClient):
+    global pokemon_id, user_id
     resp = client.post(
         '/api/pokemon', json={
             "attack": 10,
@@ -147,8 +156,9 @@ def test_pokemon(client: FlaskClient):
         })
     assert resp.status_code == 401
 
-    client.post("/api/session",
-                json={"email": "test@test.com", "password": "Password1234#"},)
+    resp = client.post("/api/session",
+                       json={"email": "test@test.com", "password": "Password1234#"},)
+    user_id=resp.json.get("id")
     resp = client.post(
         '/api/pokemon', json={
             "attack": 10,
@@ -159,7 +169,7 @@ def test_pokemon(client: FlaskClient):
             "type": "Fire"
         })
     assert resp.status_code == 201
-    created_id = resp.json.get("id")
+    pokemon_id = resp.json.get("id")
 
     resp = client.get('/api/pokemon')
     assert resp.status_code == 200
@@ -170,14 +180,16 @@ def test_pokemon(client: FlaskClient):
     resp = client.get('/api/pokemon?rows=5&page=0')
     assert resp.status_code == 200
 
-    resp = client.post(
+    resp = client.put(
         '/api/pokemon?id=1', json={
             "attack": 10,
         })
     assert resp.status_code == 401
 
     resp = client.put(
-        '/api/pokemon?id='+created_id, json={
+        f'/api/pokemon?id={pokemon_id}', json={
             "attack": 20,
         })
+    pokemon.delete(pokemon_id)
+    user.delete(user_id)
     assert resp.status_code == 200
